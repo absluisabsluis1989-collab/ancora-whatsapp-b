@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", "Avenir Next", sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+  --color-ink: #07141c;
+  --color-ink-2: #102331;
+  --color-panel: #143044;
+  --color-line: #2a4a5e;
+  --color-paper: #f4efe4;
+  --color-paper-dim: #e6dece;
+  --color-fg: #f3f6f7;
+  --color-muted: #9eb0bb;
+  --color-teal: #8fd0c4;
+  --color-teal-deep: #0f6e66;
+  --color-copper: #e0a06a;
+  --color-danger: #f0a0a0;
+  --color-ok: #b7e0c4;
+  --radius-card: 1.25rem;
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html,
+  body {
+    background: var(--color-ink);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 560;
+    letter-spacing: -0.03em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}

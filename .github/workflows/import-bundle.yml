@@ -1,0 +1,45 @@
+name: Import supplied B source bundle
+on:
+  push:
+    branches: ["import/solution-b-20261031"]
+    paths: [".github/workflows/import-bundle.yml"]
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and extract the supplied source archive
+        run: |
+          python3 - <<'PY'
+          import hashlib, pathlib, shutil, stat, urllib.request, zipfile
+          url = "https://github.com/absluisabsluis1989-collab/ancora-whatsapp-b/releases/download/b-2026-10-30/ancora-whatsapp-b.zip"
+          data = urllib.request.urlopen(url, timeout=60).read()
+          assert hashlib.sha256(data).hexdigest() == "3d8e8d483b0f1c3aff15608566a9707eb3649ecb57c2dacd8ff5f5a3ca0315b4", "Archive hash changed"
+          archive = pathlib.Path("/tmp/ancora-whatsapp-b.zip")
+          archive.write_bytes(data)
+          root = pathlib.Path.cwd().resolve()
+          with zipfile.ZipFile(archive) as z:
+              assert len(z.infolist()) == 130
+              assert sum(i.file_size for i in z.infolist()) < 64000000
+              for item in z.infolist():
+                  target = (root / item.filename).resolve()
+                  assert target.is_relative_to(root), item.filename
+                  assert not stat.S_ISLNK(item.external_attr >> 16), item.filename
+                  assert target.relative_to(root).parts[0] not in (".git", ".github"), item.filename
+                  assert pathlib.PurePosixPath(item.filename).name != ".env", item.filename
+              assert z.testzip() is None
+              z.extractall(root)
+          print("Verified 130 entries and imported supplied source; no application executed.")
+          PY
+      - name: Save source on this review branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "Import B source from verified public release archive"
+            git push origin HEAD:import/solution-b-20261031
+          fi
